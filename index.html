@@ -131,133 +131,123 @@
 </div>
 
 <script>
-    const pieces = [
-        { nom: '100$', valeur: 10000 },
-        { nom: '50$', valeur: 5000 },
-        { nom: '20$', valeur: 2000 },
-        { nom: '10$', valeur: 1000 },
-        { nom: '5$', valeur: 500 },
-        { nom: '2$', valeur: 200 },
-        { nom: '1$', valeur: 100 },
-        { nom: '25¢', valeur: 25 },
-        { nom: '10¢', valeur: 10 },
-        { nom: '5¢', valeur: 5 },
-    ];
-    
-    const quantiteInitiale = 100;
-    let disponibilitePieces = [];
-    let dernierResultat = { montant: 0, rendu: [] };
-    const apiUrl = '/api/disponibilite';
-    
-    function chargerDisponibilite() {
-        fetch(apiUrl)
-            .then(response => response.json())
-            .then(data => {
-                disponibilitePieces = data;
-                afficherInputsPieces();
-            })
-            .catch(error => console.error('Erreur de chargement des données:', error));
+const pieces = [
+    { nom: '100$', valeur: 10000 },
+    { nom: '50$', valeur: 5000 },
+    { nom: '20$', valeur: 2000 },
+    { nom: '10$', valeur: 1000 },
+    { nom: '5$', valeur: 500 },
+    { nom: '2$', valeur: 200 },
+    { nom: '1$', valeur: 100 },
+    { nom: '25¢', valeur: 25 },
+    { nom: '10¢', valeur: 10 },
+    { nom: '5¢', valeur: 5 },
+];
+
+const quantiteInitiale = 100;
+let disponibilitePieces = [];
+let dernierResultat = { montant: 0, rendu: [] };
+
+function chargerDisponibilite() {
+    const stock = localStorage.getItem('disponibilitePieces');
+    if (stock) {
+        disponibilitePieces = JSON.parse(stock);
+    } else {
+        disponibilitePieces = pieces.map(piece => ({ ...piece, quantite: quantiteInitiale }));
     }
-    
-    function sauvegarderDisponibilite() {
-        fetch(apiUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(disponibilitePieces)
-        })
-        .then(response => response.text())
-        .then(message => console.log(message))
-        .catch(error => console.error('Erreur de sauvegarde des données:', error));
-    }
-    
-    function afficherInputsPieces() {
-        const container = document.getElementById('pieceInputs');
-        container.innerHTML = '';
-        disponibilitePieces.forEach((piece, index) => {
-            container.innerHTML += `
-                <div class="piece-input">
-                    <label style="margin-right:5px" for="quantite${index}">${piece.nom}:</label>
-                    <input type="number" id="quantite${index}" step="1" min="0" value="${piece.quantite}">
-                </div>
-            `;
-        });
-    }
-    
-    function mettreAJourDisponibilite() {
-        disponibilitePieces = disponibilitePieces.map((piece, index) => ({
-            ...piece,
-            quantite: parseInt(document.getElementById(`quantite${index}`).value, 10)
-        }));
-        sauvegarderDisponibilite();
-    }
-    
-    function arrondirCents(montant) {
-        return Math.round(montant * 20) / 20; // Arrondi au plus proche multiple de 0,05
-    }
-    
-    function calculerMonnaie() {
-        const montantTotal = parseFloat(document.getElementById('montantTotal').value);
-        const montantDu = parseFloat(document.getElementById('montantDu').value);
-        let montantARendre = montantTotal - montantDu;
-        montantARendre = arrondirCents(montantARendre);
-        afficherResultat(montantARendre, 'result');
-        document.getElementById('retirerMonnaieBtn').classList.remove('hidden');
-    }
-    
-    function calculerMontantARendre() {
-        const montantARendre = parseFloat(document.getElementById('montantARendre').value);
-        const montantArrondi = arrondirCents(montantARendre);
-        afficherResultat(montantArrondi, 'resultDirect');
-        document.getElementById('retirerDirectBtn').classList.remove('hidden');
-    }
-    
-    function afficherResultat(montantARendre, resultElementId) {
-        let montantEnCents = Math.round(montantARendre * 100);
-        const rendu = [];
-    
-        for (let i = 0; i < disponibilitePieces.length; i++) {
-            const piece = disponibilitePieces[i];
-            if (montantEnCents >= piece.valeur && piece.quantite > 0) {
-                const nombreDePieces = Math.min(Math.floor(montantEnCents / piece.valeur), piece.quantite);
-                montantEnCents -= nombreDePieces * piece.valeur;
-                rendu.push(`${nombreDePieces} x ${piece.nom}`);
-            }
+    afficherInputsPieces();
+}
+
+function sauvegarderDisponibilite() {
+    localStorage.setItem('disponibilitePieces', JSON.stringify(disponibilitePieces));
+}
+
+function afficherInputsPieces() {
+    const container = document.getElementById('pieceInputs');
+    container.innerHTML = '';
+    disponibilitePieces.forEach((piece, index) => {
+        container.innerHTML += `
+            <div class="piece-input">
+                <label style="margin-right:5px" for="quantite${index}">${piece.nom}:</label>
+                <input type="number" id="quantite${index}" step="1" min="0" value="${piece.quantite}">
+            </div>
+        `;
+    });
+}
+
+function mettreAJourDisponibilite() {
+    disponibilitePieces = disponibilitePieces.map((piece, index) => ({
+        ...piece,
+        quantite: parseInt(document.getElementById(`quantite${index}`).value, 10)
+    }));
+    sauvegarderDisponibilite();
+}
+
+function arrondirCents(montant) {
+    return Math.round(montant * 20) / 20; // Arrondi au plus proche multiple de 0,05
+}
+
+function calculerMonnaie() {
+    const montantTotal = parseFloat(document.getElementById('montantTotal').value);
+    const montantDu = parseFloat(document.getElementById('montantDu').value);
+    let montantARendre = montantTotal - montantDu;
+    montantARendre = arrondirCents(montantARendre);
+    afficherResultat(montantARendre, 'result');
+    document.getElementById('retirerMonnaieBtn').classList.remove('hidden');
+}
+
+function calculerMontantARendre() {
+    const montantARendre = parseFloat(document.getElementById('montantARendre').value);
+    const montantArrondi = arrondirCents(montantARendre);
+    afficherResultat(montantArrondi, 'resultDirect');
+    document.getElementById('retirerDirectBtn').classList.remove('hidden');
+}
+
+function afficherResultat(montantARendre, resultElementId) {
+    let montantEnCents = Math.round(montantARendre * 100);
+    const rendu = [];
+
+    for (let i = 0; i < disponibilitePieces.length; i++) {
+        const piece = disponibilitePieces[i];
+        if (montantEnCents >= piece.valeur && piece.quantite > 0) {
+            const nombreDePieces = Math.min(Math.floor(montantEnCents / piece.valeur), piece.quantite);
+            montantEnCents -= nombreDePieces * piece.valeur;
+            rendu.push(`${nombreDePieces} x ${piece.nom}`);
         }
-    
-        const resultatElement = document.getElementById(resultElementId);
-        if (montantEnCents > 0) {
-            resultatElement.innerHTML = '<h2>Monnaie à rendre :</h2><p class="disabled">Impossible de rendre la monnaie exacte avec les pièces disponibles.</p>';
-        } else {
-            resultatElement.innerHTML = '<h2>Monnaie à rendre :</h2>' + rendu.join('<br>');
-        }
-    
-        dernierResultat = { montant: montantARendre, rendu: rendu };
     }
-    
-    function retirerPieces(resultElementId) {
-        let montantRestant = dernierResultat.montant * 100; // Convertir en cents
-    
-        for (let i = 0; i < disponibilitePieces.length; i++) {
-            const piece = disponibilitePieces[i];
-            if (montantRestant >= piece.valeur) {
-                const nombreDePieces = Math.min(Math.floor(montantRestant / piece.valeur), piece.quantite);
-                montantRestant -= nombreDePieces * piece.valeur;
-                disponibilitePieces[i].quantite -= nombreDePieces;
-            }
-        }
-    
-        sauvegarderDisponibilite();
-        afficherInputsPieces();
-        document.getElementById(resultElementId).innerHTML = '<h2>Monnaie retirée</h2>';
-        document.getElementById('retirerMonnaieBtn').classList.add('hidden');
-        document.getElementById('retirerDirectBtn').classList.add('hidden');
+
+    const resultatElement = document.getElementById(resultElementId);
+    if (montantEnCents > 0) {
+        resultatElement.innerHTML = '<h2>Monnaie à rendre :</h2><p class="disabled">Impossible de rendre la monnaie exacte avec les pièces disponibles.</p>';
+    } else {
+        resultatElement.innerHTML = '<h2>Monnaie à rendre :</h2>' + rendu.join('<br>');
     }
-    
-    // Initialisation des champs de saisie pour les quantités disponibles
-    chargerDisponibilite();
-    </script>
+
+    dernierResultat = { montant: montantARendre, rendu: rendu };
+}
+
+function retirerPieces(resultElementId) {
+    let montantRestant = dernierResultat.montant * 100; // Convertir en cents
+
+    for (let i = 0; i < disponibilitePieces.length; i++) {
+        const piece = disponibilitePieces[i];
+        if (montantRestant >= piece.valeur) {
+            const nombreDePieces = Math.min(Math.floor(montantRestant / piece.valeur), piece.quantite);
+            montantRestant -= nombreDePieces * piece.valeur;
+            disponibilitePieces[i].quantite -= nombreDePieces;
+        }
+    }
+
+    sauvegarderDisponibilite();
+    afficherInputsPieces();
+    document.getElementById(resultElementId).innerHTML = '<h2>Monnaie retirée</h2>';
+    document.getElementById('retirerMonnaieBtn').classList.add('hidden');
+    document.getElementById('retirerDirectBtn').classList.add('hidden');
+}
+
+// Initialisation des champs de saisie pour les quantités disponibles
+chargerDisponibilite();
+</script>
 
 </body>
 </html>
