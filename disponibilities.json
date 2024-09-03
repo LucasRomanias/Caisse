@@ -1,0 +1,12 @@
+[
+    { "nom": "100$", "valeur": 10000, "quantite": 100 },
+    { "nom": "50$", "valeur": 5000, "quantite": 100 },
+    { "nom": "20$", "valeur": 2000, "quantite": 100 },
+    { "nom": "10$", "valeur": 1000, "quantite": 100 },
+    { "nom": "5$", "valeur": 500, "quantite": 100 },
+    { "nom": "2$", "valeur": 200, "quantite": 100 },
+    { "nom": "1$", "valeur": 100, "quantite": 100 },
+    { "nom": "25¢", "valeur": 25, "quantite": 100 },
+    { "nom": "10¢", "valeur": 10, "quantite": 100 },
+    { "nom": "5¢", "valeur": 5, "quantite": 100 }
+]
