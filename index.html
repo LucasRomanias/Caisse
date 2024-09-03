@@ -93,19 +93,26 @@
 </div>
 
 <script>
+function arrondirCents(montant) {
+    return Math.round(montant * 20) / 20; // Arrondi au plus proche multiple de 0,05
+}
+
 function calculerMonnaie() {
     var montantTotal = parseFloat(document.getElementById('montantTotal').value);
     var montantDu = parseFloat(document.getElementById('montantDu').value);
-    var montantARendre = Math.round((montantTotal - montantDu) * 100);
+    var montantARendre = montantTotal - montantDu;
+    montantARendre = arrondirCents(montantARendre);
     afficherResultat(montantARendre, 'result');
 }
 
 function calculerMontantARendre() {
-    var montantARendre = Math.round(parseFloat(document.getElementById('montantARendre').value) * 100);
+    var montantARendre = parseFloat(document.getElementById('montantARendre').value);
+    montantARendre = arrondirCents(montantARendre);
     afficherResultat(montantARendre, 'resultDirect');
 }
 
 function afficherResultat(montantARendre, resultElementId) {
+    var montantEnCents = Math.round(montantARendre * 100);
     var pieces = [
         { nom: '100$', valeur: 10000 },
         { nom: '50$', valeur: 5000 },
@@ -123,9 +130,9 @@ function afficherResultat(montantARendre, resultElementId) {
 
     for (var i = 0; i < pieces.length; i++) {
         var piece = pieces[i];
-        if (montantARendre >= piece.valeur) {
-            var nombreDePieces = Math.floor(montantARendre / piece.valeur);
-            montantARendre %= piece.valeur;
+        if (montantEnCents >= piece.valeur) {
+            var nombreDePieces = Math.floor(montantEnCents / piece.valeur);
+            montantEnCents %= piece.valeur;
             rendu.push(`${nombreDePieces} x ${piece.nom}`);
         }
     }
@@ -136,3 +143,4 @@ function afficherResultat(montantARendre, resultElementId) {
 
 </body>
 </html>
+
