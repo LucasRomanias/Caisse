@@ -24,6 +24,10 @@
             max-width: 400px;
             text-align: center;
             margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            padding-left: 2vw;
+            padding-right: 2vw;
         }
         h1 {
             font-size: 1.5em;
@@ -76,6 +80,12 @@
         #pieceInputs {
             margin-top: 20px;
         }
+        .hidden {
+            display: none;
+        }
+        .retirer-container {
+            margin-top: 20px; /* Espacement au-dessus du bouton */
+        }
     </style>
 </head>
 <body>
@@ -86,23 +96,27 @@
     <label for="montantTotal">Montant donné :</label>
     <input type="number" id="montantTotal" step="0.01" inputmode="decimal" required>
 
-    <label for="montantDu">Montant dû :</label>
+    <label for="montantDu" >Montant dû :</label>
     <input type="number" id="montantDu" step="0.01" inputmode="decimal" required>
 
     <input type="button" value="Calculer" onclick="calculerMonnaie()">
-
     <div id="result" class="result"></div>
+    <div class="retirer-container">
+        <input type="button" value="Retirer pièces" id="retirerMonnaieBtn" class="hidden" onclick="retirerPieces('result')">
+    </div>
 </div>
 
 <!-- Calculateur direct -->
 <div class="container">
     <h1>Calculateur Direct</h1>
-    <label for="montantARendre">Montant à rendre :</label>
+    <label for="montantARendre" >Montant à rendre :</label>
     <input type="number" id="montantARendre" step="0.01" inputmode="decimal" required>
 
     <input type="button" value="Calculer" onclick="calculerMontantARendre()">
-
     <div id="resultDirect" class="result"></div>
+    <div class="retirer-container">
+        <input type="button" value="Retirer pièces" id="retirerDirectBtn" class="hidden" onclick="retirerPieces('resultDirect')">
+    </div>
 </div>
 
 <!-- Interface de gestion de la disponibilité des pièces -->
@@ -130,6 +144,7 @@ const pieces = [
 
 const quantiteInitiale = 100;
 let disponibilitePieces = [];
+let dernierResultat = { montant: 0, rendu: [] };
 
 function chargerDisponibilite() {
     const stock = localStorage.getItem('disponibilitePieces');
@@ -176,12 +191,14 @@ function calculerMonnaie() {
     let montantARendre = montantTotal - montantDu;
     montantARendre = arrondirCents(montantARendre);
     afficherResultat(montantARendre, 'result');
+    document.getElementById('retirerMonnaieBtn').classList.remove('hidden');
 }
 
 function calculerMontantARendre() {
     const montantARendre = parseFloat(document.getElementById('montantARendre').value);
     const montantArrondi = arrondirCents(montantARendre);
     afficherResultat(montantArrondi, 'resultDirect');
+    document.getElementById('retirerDirectBtn').classList.remove('hidden');
 }
 
 function afficherResultat(montantARendre, resultElementId) {
@@ -203,6 +220,27 @@ function afficherResultat(montantARendre, resultElementId) {
     } else {
         resultatElement.innerHTML = '<h2>Monnaie à rendre :</h2>' + rendu.join('<br>');
     }
+
+    dernierResultat = { montant: montantARendre, rendu: rendu };
+}
+
+function retirerPieces(resultElementId) {
+    let montantRestant = dernierResultat.montant * 100; // Convertir en cents
+
+    for (let i = 0; i < disponibilitePieces.length; i++) {
+        const piece = disponibilitePieces[i];
+        if (montantRestant >= piece.valeur) {
+            const nombreDePieces = Math.min(Math.floor(montantRestant / piece.valeur), piece.quantite);
+            montantRestant -= nombreDePieces * piece.valeur;
+            disponibilitePieces[i].quantite -= nombreDePieces;
+        }
+    }
+
+    sauvegarderDisponibilite();
+    afficherInputsPieces();
+    document.getElementById(resultElementId).innerHTML = '<h2>Monnaie retirée</h2>';
+    document.getElementById('retirerMonnaieBtn').classList.add('hidden');
+    document.getElementById('retirerDirectBtn').classList.add('hidden');
 }
 
 // Initialisation des champs de saisie pour les quantités disponibles
