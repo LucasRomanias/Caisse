@@ -34,7 +34,7 @@
             border-radius: 4px;
             font-size: 16px;
         }
-        input[type="submit"] {
+        input[type="button"] {
             background-color: #4CAF50;
             color: white;
             padding: 10px 20px;
@@ -43,7 +43,7 @@
             cursor: pointer;
             font-size: 16px;
         }
-        input[type="submit"]:hover {
+        input[type="button"]:hover {
             background-color: #45a049;
         }
         .result {
@@ -56,59 +56,50 @@
 
 <div class="container">
     <h1>Calculateur de Monnaie</h1>
-    <form method="post">
-        <label for="montantTotal">Montant donné par le client:</label>
-        <input type="number" id="montantTotal" name="montantTotal" step="0.01" required>
+    <label for="montantTotal">Montant donné :</label>
+    <input type="number" id="montantTotal" step="0.01" required>
 
-        <label for="montantDu">Montant de la facture :</label>
-        <input type="number" id="montantDu" name="montantDu" step="0.01" required>
+    <label for="montantDu">Montant dû :</label>
+    <input type="number" id="montantDu" step="0.01" required>
 
-        <input type="submit" value="Calculer">
-    </form>
+    <input type="button" value="Calculer" onclick="calculerMonnaie()">
 
-    <?php
-    if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-        $montantTotal = $_POST['montantTotal'];
-        $montantDu = $_POST['montantDu'];
-
-        function rendreMonnaie($montantTotal, $montantDu) {
-            $pieces = [
-                '100$' => 10000,
-                '50$' => 5000,
-                '20$' => 2000,
-                '10$' => 1000,
-                '5$' => 500,
-                '2$' => 200,
-                '1$' => 100,
-                '25¢' => 25,
-                '10¢' => 10,
-                '5¢' => 5,
-            ];
-
-            $montantARendre = intval(round(($montantTotal - $montantDu) * 100));
-            $rendu = [];
-
-            foreach ($pieces as $piece => $valeur) {
-                if ($montantARendre >= $valeur) {
-                    $nombreDePieces = intdiv($montantARendre, $valeur);
-                    $montantARendre %= $valeur;
-                    $rendu[$piece] = $nombreDePieces;
-                }
-            }
-
-            return $rendu;
-        }
-
-        $monnaieARendre = rendreMonnaie($montantTotal, $montantDu);
-
-        echo '<div class="result"><h2>Monnaie à rendre :</h2>';
-        foreach ($monnaieARendre as $piece => $nombre) {
-            echo "$nombre x $piece<br>";
-        }
-        echo '</div>';
-    }
-    ?>
+    <div id="result" class="result"></div>
 </div>
+
+<script>
+function calculerMonnaie() {
+    var montantTotal = parseFloat(document.getElementById('montantTotal').value);
+    var montantDu = parseFloat(document.getElementById('montantDu').value);
+
+    var pieces = [
+        { nom: '100$', valeur: 10000 },
+        { nom: '50$', valeur: 5000 },
+        { nom: '20$', valeur: 2000 },
+        { nom: '10$', valeur: 1000 },
+        { nom: '5$', valeur: 500 },
+        { nom: '2$', valeur: 200 },
+        { nom: '1$', valeur: 100 },
+        { nom: '25¢', valeur: 25 },
+        { nom: '10¢', valeur: 10 },
+        { nom: '5¢', valeur: 5 },
+    ];
+
+    var montantARendre = Math.round((montantTotal - montantDu) * 100);
+    var rendu = [];
+
+    for (var i = 0; i < pieces.length; i++) {
+        var piece = pieces[i];
+        if (montantARendre >= piece.valeur) {
+            var nombreDePieces = Math.floor(montantARendre / piece.valeur);
+            montantARendre %= piece.valeur;
+            rendu.push(`${nombreDePieces} x ${piece.nom}`);
+        }
+    }
+
+    document.getElementById('result').innerHTML = '<h2>Monnaie à rendre :</h2>' + rendu.join('<br>');
+}
+</script>
 
 </body>
 </html>
