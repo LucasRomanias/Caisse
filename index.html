@@ -26,8 +26,7 @@
             margin-bottom: 20px;
             display: flex;
             flex-direction: column;
-            padding-left: 7%;
-            padding-right: 7%;
+            align-items: center;
         
         }
         h1 {
@@ -39,6 +38,7 @@
             margin-bottom: 5px;
             display: block;
             text-align: left;
+
         }
         input[type="number"] {
             width: 87%;
@@ -167,7 +167,7 @@ function afficherInputsPieces() {
     disponibilitePieces.forEach((piece, index) => {
         container.innerHTML += `
             <div class="piece-input">
-                <label for="quantite${index}">${piece.nom} :</label>
+                <label style="margin-right:5px" for="quantite${index}">${piece.nom}:</label>
                 <input type="number" id="quantite${index}" step="1" min="0" value="${piece.quantite}">
             </div>
         `;
