@@ -41,7 +41,7 @@
             margin-bottom: 10px;
             border: 1px solid #ccc;
             border-radius: 4px;
-            font-size: 1em;
+            font-size: 1em; 
             box-sizing: border-box;
         }
         input[type="button"] {
@@ -128,26 +128,42 @@ const pieces = [
     { nom: '5¢', valeur: 5 },
 ];
 
-let disponibilitePieces = pieces.map(piece => ({ ...piece, quantite: 100 }));
+const quantiteInitiale = 100;
+let disponibilitePieces = [];
+
+function chargerDisponibilite() {
+    const stock = localStorage.getItem('disponibilitePieces');
+    if (stock) {
+        disponibilitePieces = JSON.parse(stock);
+    } else {
+        disponibilitePieces = pieces.map(piece => ({ ...piece, quantite: quantiteInitiale }));
+    }
+    afficherInputsPieces();
+}
+
+function sauvegarderDisponibilite() {
+    localStorage.setItem('disponibilitePieces', JSON.stringify(disponibilitePieces));
+}
 
 function afficherInputsPieces() {
     const container = document.getElementById('pieceInputs');
     container.innerHTML = '';
-    pieces.forEach((piece, index) => {
+    disponibilitePieces.forEach((piece, index) => {
         container.innerHTML += `
             <div class="piece-input">
                 <label for="quantite${index}">${piece.nom} :</label>
-                <input type="number" id="quantite${index}" step="1" min="0" value="${disponibilitePieces[index].quantite}">
+                <input type="number" id="quantite${index}" step="1" min="0" value="${piece.quantite}">
             </div>
         `;
     });
 }
 
 function mettreAJourDisponibilite() {
-    disponibilitePieces = pieces.map((piece, index) => ({
+    disponibilitePieces = disponibilitePieces.map((piece, index) => ({
         ...piece,
         quantite: parseInt(document.getElementById(`quantite${index}`).value, 10)
     }));
+    sauvegarderDisponibilite();
 }
 
 function arrondirCents(montant) {
@@ -190,12 +206,8 @@ function afficherResultat(montantARendre, resultElementId) {
 }
 
 // Initialisation des champs de saisie pour les quantités disponibles
-afficherInputsPieces();
+chargerDisponibilite();
 </script>
 
 </body>
 </html>
-
-
-
-
