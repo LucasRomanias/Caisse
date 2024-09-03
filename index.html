@@ -57,7 +57,7 @@
             margin-bottom: 10px;
         }
         input[type="button"]:hover {
-            background-color: #f38ecb;
+            background-color: #d67ab1;
         }
         .result {
             margin-top: 20px;
@@ -65,10 +65,22 @@
             font-size: 1em;
             word-wrap: break-word;
         }
+        .disabled {
+            color: #999;
+        }
+        .piece-input {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        #pieceInputs {
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
 
+<!-- Calculateur de monnaie -->
 <div class="container">
     <h1>Calculateur de Monnaie</h1>
     <label for="montantTotal">Montant donné :</label>
@@ -82,6 +94,7 @@
     <div id="result" class="result"></div>
 </div>
 
+<!-- Calculateur direct -->
 <div class="container">
     <h1>Calculateur Direct</h1>
     <label for="montantARendre">Montant à rendre :</label>
@@ -92,56 +105,97 @@
     <div id="resultDirect" class="result"></div>
 </div>
 
+<!-- Interface de gestion de la disponibilité des pièces -->
+<div class="container" id="gestionDisponibilite">
+    <h1>Gestion de la Disponibilité des Pièces</h1>
+    <div id="pieceInputs">
+        <!-- Les entrées pour chaque pièce seront ajoutées dynamiquement ici -->
+    </div>
+    <input type="button" value="Mettre à jour" onclick="mettreAJourDisponibilite()">
+</div>
+
 <script>
+const pieces = [
+    { nom: '100$', valeur: 10000 },
+    { nom: '50$', valeur: 5000 },
+    { nom: '20$', valeur: 2000 },
+    { nom: '10$', valeur: 1000 },
+    { nom: '5$', valeur: 500 },
+    { nom: '2$', valeur: 200 },
+    { nom: '1$', valeur: 100 },
+    { nom: '25¢', valeur: 25 },
+    { nom: '10¢', valeur: 10 },
+    { nom: '5¢', valeur: 5 },
+];
+
+let disponibilitePieces = pieces.map(piece => ({ ...piece, quantite: 100 }));
+
+function afficherInputsPieces() {
+    const container = document.getElementById('pieceInputs');
+    container.innerHTML = '';
+    pieces.forEach((piece, index) => {
+        container.innerHTML += `
+            <div class="piece-input">
+                <label for="quantite${index}">${piece.nom} :</label>
+                <input type="number" id="quantite${index}" step="1" min="0" value="${disponibilitePieces[index].quantite}">
+            </div>
+        `;
+    });
+}
+
+function mettreAJourDisponibilite() {
+    disponibilitePieces = pieces.map((piece, index) => ({
+        ...piece,
+        quantite: parseInt(document.getElementById(`quantite${index}`).value, 10)
+    }));
+}
+
 function arrondirCents(montant) {
     return Math.round(montant * 20) / 20; // Arrondi au plus proche multiple de 0,05
 }
 
 function calculerMonnaie() {
-    var montantTotal = parseFloat(document.getElementById('montantTotal').value);
-    var montantDu = parseFloat(document.getElementById('montantDu').value);
-    var montantARendre = montantTotal - montantDu;
+    const montantTotal = parseFloat(document.getElementById('montantTotal').value);
+    const montantDu = parseFloat(document.getElementById('montantDu').value);
+    let montantARendre = montantTotal - montantDu;
     montantARendre = arrondirCents(montantARendre);
     afficherResultat(montantARendre, 'result');
 }
 
 function calculerMontantARendre() {
-    var montantARendre = parseFloat(document.getElementById('montantARendre').value);
-    montantARendre = arrondirCents(montantARendre);
-    afficherResultat(montantARendre, 'resultDirect');
+    const montantARendre = parseFloat(document.getElementById('montantARendre').value);
+    const montantArrondi = arrondirCents(montantARendre);
+    afficherResultat(montantArrondi, 'resultDirect');
 }
 
 function afficherResultat(montantARendre, resultElementId) {
-    var montantEnCents = Math.round(montantARendre * 100);
-    var pieces = [
-        { nom: '100$', valeur: 10000 },
-        { nom: '50$', valeur: 5000 },
-        { nom: '20$', valeur: 2000 },
-        { nom: '10$', valeur: 1000 },
-        { nom: '5$', valeur: 500 },
-        { nom: '2$', valeur: 200 },
-        { nom: '1$', valeur: 100 },
-        { nom: '25¢', valeur: 25 },
-        { nom: '10¢', valeur: 10 },
-        { nom: '5¢', valeur: 5 },
-    ];
+    let montantEnCents = Math.round(montantARendre * 100);
+    const rendu = [];
 
-    var rendu = [];
-
-    for (var i = 0; i < pieces.length; i++) {
-        var piece = pieces[i];
-        if (montantEnCents >= piece.valeur) {
-            var nombreDePieces = Math.floor(montantEnCents / piece.valeur);
-            montantEnCents %= piece.valeur;
+    for (let i = 0; i < disponibilitePieces.length; i++) {
+        const piece = disponibilitePieces[i];
+        if (montantEnCents >= piece.valeur && piece.quantite > 0) {
+            const nombreDePieces = Math.min(Math.floor(montantEnCents / piece.valeur), piece.quantite);
+            montantEnCents -= nombreDePieces * piece.valeur;
             rendu.push(`${nombreDePieces} x ${piece.nom}`);
         }
     }
 
-    document.getElementById(resultElementId).innerHTML = '<h2>Monnaie à rendre :</h2>' + rendu.join('<br>');
+    const resultatElement = document.getElementById(resultElementId);
+    if (montantEnCents > 0) {
+        resultatElement.innerHTML = '<h2>Monnaie à rendre :</h2><p class="disabled">Impossible de rendre la monnaie exacte avec les pièces disponibles.</p>';
+    } else {
+        resultatElement.innerHTML = '<h2>Monnaie à rendre :</h2>' + rendu.join('<br>');
+    }
 }
+
+// Initialisation des champs de saisie pour les quantités disponibles
+afficherInputsPieces();
 </script>
 
 </body>
 </html>
+
+
 
 
